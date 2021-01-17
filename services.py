@@ -1,20 +1,31 @@
 from dadata import Dadata
-from rdt import settings
+from os import environ
 
 
 class DadataService:
+    def __init__(self, dadata_api_key=None):
+        if dadata_api_key is None:
+            dadata_api_key = environ.get('DADATA_API_KEY')
+        self.dadata = Dadata(dadata_api_key)
 
     def get_legal_entity_info_by_inn(self, inn):
-        token = settings.DADATA_API_KEY
-        dadata = Dadata(token)
-        result = dadata.find_by_id('party', inn)
-        print(result)
+
+        result = self.dadata.find_by_id('party', inn)
         if result is None:
-            return {'status': 'error'}
+            return {
+                'error_code': 1,
+                'message': 'Legal entity with INN ' + inn + ' not found',
+                'status': 'error'
+            }
         if len(result) != 1:
-            return {'status': 'error'}
+            return {
+                'error_code': 2,
+                'message': 'Multiple Legal entities with INN ' + inn + ' found',
+                'status': 'error'
+            }
         result = result[0]
         return {
+            'error_code': 0,
             'status': 'success',
             'name': result['unrestricted_value'],
             'inn': result['data']['inn'],
@@ -25,18 +36,26 @@ class DadataService:
         }
 
     def get_bank_info_by_bik(self, bik):
-        token = settings.DADATA_API_KEY
-        dadata = Dadata(token)
-        result = dadata.find_by_id('bank', bik)
+        result = self.dadata.find_by_id('bank', bik)
         if result is None:
-            return {'status': 'error'}
+            return {
+                'error_code': 1,
+                'message': 'Bank with BIK ' + bik + ' not found',
+                'status': 'error'
+            }
         if len(result) != 1:
-            return {'status': 'error'}
+            return {
+                'error_code': 2,
+                'message': 'Multiple banks with BIK ' + bik + ' found',
+                'status': 'error'
+            }
         result = result[0]
         return {
+            'error_code': 0,
             'status': 'success',
             'name': result['unrestricted_value'],
             'inn': result['data']['inn'],
             'kpp': result['data']['kpp'],
             'correspondent_account': result['data']['correspondent_account'],
+            'city': result['data']['address']['data']['city'],
         }

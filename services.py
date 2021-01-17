@@ -24,15 +24,19 @@ class DadataService:
                 'status': 'error'
             }
         result = result[0]
+        ceo = result['unrestricted_value']
+
+        if 'management' in result['data']:
+            ceo = result['data']['management']['name']
         return {
             'error_code': 0,
             'status': 'success',
             'name': result['unrestricted_value'],
             'inn': result['data']['inn'],
-            'kpp': result['data']['kpp'],
+            'kpp': result['data'].get('kpp', 'not availible'),
             'ogrn': result['data']['ogrn'],
             'address': result['data']['address']['data']['source'],
-            'ceo': result['data']['management']['name']
+            'ceo': ceo
         }
 
     def get_bank_info_by_bik(self, bik):
